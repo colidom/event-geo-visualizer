@@ -3,7 +3,7 @@ import pandas as pd
 import pytz
 import datetime
 
-def create_marker(row, m, all_coords):
+def create_marker(row, m, all_coords, all_alarm_dates):
     """
     Procesa las coordenadas y añade un marcador al mapa, decidiendo el color
     y el contenido basado en el tipo de evento.
@@ -26,14 +26,18 @@ def create_marker(row, m, all_coords):
                     alarm_date = pd.Timestamp(alarm_datetime_obj, tz=pytz.timezone('Europe/Madrid'))
                 
                 hour_tag = alarm_date.floor('h').strftime('%H:00')
-
-                # Decidir el color del icono y el contenido del popup
+                all_alarm_dates.append(hour_tag)
+                
                 if event_type == 'defendant':
                     icon_color = 'red'
-                    user_id_label = 'Defendant ID'
+                    user_id_label = 'ID Inculpado'
+                    event_tag = 'Inculpado'
                 else: # event_type == 'victim'
-                    icon_color = 'green'
-                    user_id_label = 'Victim ID'
+                    icon_color = 'blue'
+                    user_id_label = 'ID Víctima'
+                    event_tag = 'Víctima'
+
+                tags = [hour_tag, event_tag] 
 
                 popup_content_list = []
                 popup_content_list.append(f"<strong>{user_id_label}:</strong> {row.get('user_id', 'N/A')}")
@@ -48,10 +52,10 @@ def create_marker(row, m, all_coords):
                     location=coords,
                     popup=folium.Popup(popup_html, max_width=300),
                     icon=folium.Icon(color=icon_color, icon='info-sign'),
-                    tags=[hour_tag]
+                    tags=tags
                 ).add_to(m)
                 
-                return hour_tag, event_type
+                return event_tag
         except (ValueError, AttributeError, TypeError) as e:
             print(f"ERROR en create_marker: No se pudo procesar. Error: {e}")
-    return None, None
+    return None

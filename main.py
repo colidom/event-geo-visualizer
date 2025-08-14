@@ -26,16 +26,29 @@ try:
             m = folium.Map(zoom_start=6)
             all_coords = []
             all_alarm_dates = []
-
+            all_event_types = []
+            
+            # Un solo bucle para procesar todos los eventos
             for row in all_events_data:
-                hour_tag, is_defendant = src.map_markers.create_marker(row, m, all_coords)
-                if hour_tag:
-                    all_alarm_dates.append(hour_tag)
+                event_type = src.map_markers.create_marker(row, m, all_coords, all_alarm_dates)
+                if event_type:
+                    all_event_types.append(event_type)
 
             print("Procesamiento de datos finalizado. Creando mapa...")
 
             unique_hours = sorted(list(set(all_alarm_dates)))
-            TagFilterButton(unique_hours, name='Filtrar por Hora').add_to(m)
+            unique_event_types = sorted(list(set(all_event_types)))
+            
+            TagFilterButton(
+                unique_event_types, 
+                name='Tipo de Evento',
+                active=['Inculpado', 'Víctima'] # Los dos tipos estarán activos por defecto
+            ).add_to(m)
+            
+            TagFilterButton(
+                unique_hours,
+                name='Hora'
+            ).add_to(m)
             
             if all_coords:
                 m.fit_bounds(all_coords)
