@@ -1,0 +1,4 @@
+pandas
+folium
+psycopg2-binary
+python-dotenv
