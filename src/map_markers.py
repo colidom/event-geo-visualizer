@@ -1,25 +1,8 @@
 import folium
 import pandas as pd
 import pytz
+from src.config import EVENT_CONFIG
 
-# Diccionario de configuración para todos los tipos de eventos
-EVENT_CONFIG = {
-    'SSC_A': {'color': 'red', 'label': 'Inculpado'},
-    'SSC_V': {'color': 'blue', 'label': 'Víctima'},
-    'PROX': {'color': 'green', 'label': 'Proximidad'},
-    'EZEF': {'color': 'darkred', 'label': 'Entrada en Zona (EZ)'},
-    'EZEM': {'color': 'darkred', 'label': 'Entrada en Zona (EZ)'},
-    'SZEF': {'color': 'darkpurple', 'label': 'Salida de Zona (SZ)'},
-    'SZEM': {'color': 'darkpurple', 'label': 'Salida de Zona (SZ)'},
-    'PWRF_V': {'color': 'black', 'label': 'Fallo Energía Víctima'},
-    'PWRN_A': {'color': 'orange', 'label': 'Alerta Energía Inculpado'},
-    'PWRF_A': {'color': 'black', 'label': 'Fallo Energía Inculpado'},
-    'PWRN_V': {'color': 'orange', 'label': 'Alerta Energía Víctima'},
-    'CONNB_A': {'color': 'darkgreen', 'label': 'Conexión B Inculpado'},
-    'DISCONB_A': {'color': 'darkgreen', 'label': 'Desconexión B Inculpado'},
-    'BATCF_A': {'color': 'lightred', 'label': 'Batería Baja Inculpado'},
-    'BATCN_A': {'color': 'lightred', 'label': 'Batería Normal Inculpado'}
-}
 
 def create_marker(row, m, all_coords, all_alarm_dates):
     """

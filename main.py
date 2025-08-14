@@ -61,9 +61,9 @@ try:
             end_date.strftime('%Y-%m-%d %H:%M:%S'), 
             selected_event_types
         )
-        print("\n--- Consulta SQL a ejecutar ---")
-        print(sql_query)
-        print("-------------------------------\n")
+        # print("\n--- Consulta SQL a ejecutar ---")
+        # print(sql_query)
+        # print("-------------------------------\n")
 
         all_events_data = src.database.get_monitored_event_data(
             db_conn, 
