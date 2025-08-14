@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import psycopg2
 from psycopg2 import extras
 
-# Cargar variables de entorno desde el archivo .env
 load_dotenv()
 
 def connect_to_db():
@@ -28,48 +27,56 @@ def close_connection(conn):
         conn.close()
         print("Conexión a la base de datos cerrada.")
 
-def get_monitored_event_data(conn, start_date, end_date):
+def get_sql_query_string(start_date, end_date, event_types):
     """
-    Obtiene los datos de eventos para inculpados y víctimas de PostgreSQL
-    en una sola consulta usando UNION ALL.
+    Genera y devuelve la cadena de la consulta SQL.
     """
-    if conn is None:
+    placeholders = ', '.join([f"'{et}'" for et in event_types])
+    
+    query = f"""
+        SELECT
+            alarm_date,
+            alert_uuid,
+            device_id,
+            event_iot_type_code as event_type,
+            COALESCE(defendant_id, victim_id) as user_id,
+            COALESCE(defendant_phone_coordinates, victim_phone_coordinates) as phone_coordinates
+        FROM
+            monitored_event
+        WHERE
+            alarm_date >= '{start_date}' AND alarm_date <= '{end_date}'
+            AND event_iot_type_code IN ({placeholders});
+    """
+    return query
+
+def get_monitored_event_data(conn, start_date, end_date, event_types):
+    """
+    Obtiene los datos de eventos para los tipos seleccionados de PostgreSQL.
+    """
+    if conn is None or not event_types:
         return []
     
-    query_combined = """
+    placeholders = ','.join(['%s'] * len(event_types))
+    
+    query = f"""
         SELECT
             alarm_date,
             alert_uuid,
             device_id,
-            'defendant' as event_type,
-            defendant_id as user_id,
-            defendant_phone_coordinates as phone_coordinates
+            event_iot_type_code as event_type,
+            COALESCE(defendant_id, victim_id) as user_id,
+            COALESCE(defendant_phone_coordinates, victim_phone_coordinates) as phone_coordinates
         FROM
             monitored_event
         WHERE
             alarm_date >= %s AND alarm_date <= %s
-            AND event_iot_type_code = 'SSC_A'
-
-        UNION ALL
-
-        SELECT
-            alarm_date,
-            alert_uuid,
-            device_id,
-            'victim' as event_type,
-            victim_id as user_id,
-            victim_phone_coordinates as phone_coordinates
-        FROM
-            monitored_event
-        WHERE
-            alarm_date >= %s AND alarm_date <= %s
-            AND event_iot_type_code = 'SSC_V';
+            AND event_iot_type_code IN ({placeholders});
     """
     
     try:
         with conn.cursor(cursor_factory=extras.DictCursor) as cursor:
-            # Los parámetros deben ser pasados en el mismo orden que aparecen en la query
-            cursor.execute(query_combined, (start_date, end_date, start_date, end_date))
+            params = [start_date, end_date] + event_types
+            cursor.execute(query, params)
             combined_data = cursor.fetchall()
         
         return combined_data
