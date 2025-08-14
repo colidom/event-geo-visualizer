@@ -1,7 +1,6 @@
 import folium
 import pandas as pd
 import pytz
-import datetime
 
 # Diccionario de configuración para todos los tipos de eventos
 EVENT_CONFIG = {
