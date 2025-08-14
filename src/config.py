@@ -8,19 +8,19 @@ EVENT_GROUPS = {
 
 # Diccionario de configuración para todos los tipos de eventos
 EVENT_CONFIG = {
-    'SSC_A': {'color': 'red', 'label': 'Inculpado'},
-    'SSC_V': {'color': 'blue', 'label': 'Víctima'},
-    'PROX': {'color': 'green', 'label': 'Proximidad'},
-    'EZEF': {'color': 'darkred', 'label': 'Entrada en Zona Fija)'},
-    'EZEM': {'color': 'darkred', 'label': 'Entrada en Zona Móvil'},
-    'SZEF': {'color': 'darkpurple', 'label': 'Salida de Zona Fija'},
-    'SZEM': {'color': 'darkpurple', 'label': 'Salida de Zona Móvil'},
-    'PWRF_V': {'color': 'black', 'label': 'Apagado DLV'},
-    'PWRF_A': {'color': 'black', 'label': 'Apagado DLI'},
-    'PWRN_V': {'color': 'orange', 'label': 'Encendido DLV'},
-    'PWRN_A': {'color': 'orange', 'label': 'Encendido DLI'},
-    'CONNB_A': {'color': 'darkgreen', 'label': 'Conexión Brazalete'},
-    'DISCONB_A': {'color': 'darkgreen', 'label': 'Desconexión Brazalete'},
-    'BATCN_A': {'color': 'lightred', 'label': 'Enchufado DLI'},
-    'BATCF_A': {'color': 'lightred', 'label': 'Desenchufado DLI'}
+    'SSC_A': {'color': 'gray', 'label': 'DLI sin comunicacion', 'persona': 'Inculpado'},
+    'SSC_V': {'color': 'lightgray', 'label': 'DLV sin comunicacion', 'persona': 'Víctima'},
+    'PROX': {'color': 'darkred', 'label': 'Proximidad', 'persona': 'Inculpado'},
+    'EZEF': {'color': 'red', 'label': 'Entrada en Zona Fija', 'persona': 'Inculpado'},
+    'EZEM': {'color': 'red', 'label': 'Entrada en Zona Móvil', 'persona': 'Inculpado'},
+    'SZEF': {'color': 'lightgreen', 'label': 'Salida de Zona Fija', 'persona': 'Inculpado'},
+    'SZEM': {'color': 'lightgreen', 'label': 'Salida de Zona Móvil', 'persona': 'Inculpado'},
+    'PWRF_V': {'color': 'black', 'label': 'Apagado DLV', 'persona': 'Víctima'},
+    'PWRF_A': {'color': 'black', 'label': 'Apagado DLI', 'persona': 'Inculpado'},
+    'PWRN_V': {'color': 'blue', 'label': 'Encendido DLV', 'persona': 'Víctima'},
+    'PWRN_A': {'color': 'blue', 'label': 'Encendido DLI', 'persona': 'Inculpado'},
+    'CONNB_A': {'color': 'lightgreen', 'label': 'Conexión Brazalete', 'persona': 'Inculpado'},
+    'DISCONB_A': {'color': 'darkgreen', 'label': 'Desconexión Brazalete', 'persona': 'Inculpado'},
+    'BATCN_A': {'color': 'orange', 'label': 'Enchufado DLI', 'persona': 'Inculpado'},
+    'BATCF_A': {'color': 'lightgray', 'label': 'Desenchufado DLI', 'persona': 'Inculpado'}
 }

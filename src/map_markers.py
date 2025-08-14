@@ -1,8 +1,8 @@
 import folium
 import pandas as pd
 import pytz
+import datetime
 from src.config import EVENT_CONFIG
-
 
 def create_marker(row, m, all_coords, all_alarm_dates):
     """
@@ -11,14 +11,12 @@ def create_marker(row, m, all_coords, all_alarm_dates):
     """
     coords_str = row.get('phone_coordinates')
     
-    # 🚨 Corrección: Obtenemos el tipo de evento usando el alias de la query y eliminamos los espacios en blanco.
     event_type = row.get('event_type')
     if event_type:
         event_type = event_type.strip()
     
     if coords_str is not None:
         try:
-            # 🚨 Corrección: Eliminamos los espacios en blanco de las coordenadas también
             coords_str = coords_str.strip()
             coords_parts = coords_str.split(',')
             
@@ -39,21 +37,22 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                 hour_tag = madrid_datetime.floor('h').strftime('%H:00')
                 all_alarm_dates.append(hour_tag)
                 
-                if event_type is not None:
-                    config = EVENT_CONFIG.get(event_type, {'color': 'lightgray', 'label': event_type})
+                if event_type is not None and event_type in EVENT_CONFIG:
+                    config = EVENT_CONFIG.get(event_type)
+                    user_tag = config['persona']
+                    icon_color = config['color']
+                    event_label = config['label']
                 else:
-                    config = {'color': 'lightgray', 'label': 'Tipo de evento desconocido'}
-                    
-                icon_color = config['color']
-                event_label = config['label']
+                    user_tag = 'Otro'
+                    icon_color = 'lightgray'
+                    event_label = event_type if event_type else 'Tipo de evento desconocido'
                 
-                user_tag = 'Otro'
-                if event_type is not None:
-                    if event_type.endswith('_A'):
-                        user_tag = 'Inculpado'
-                    elif event_type.endswith('_V'):
-                        user_tag = 'Víctima'
-                
+                icon_name = 'user'
+                if user_tag == 'Inculpado':
+                    icon_name = 'male'
+                elif user_tag == 'Víctima':
+                    icon_name = 'female'
+
                 tags = [hour_tag, user_tag]
 
                 popup_content_list = []
@@ -64,6 +63,7 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                 elif user_tag == 'Víctima':
                     user_id_label = 'ID Víctima'
                 
+                popup_content_list.append(f"<strong>Tipo de Usuario:</strong> {user_tag}")
                 popup_content_list.append(f"<strong>Tipo de Evento:</strong> {event_label}")
                 popup_content_list.append(f"<strong>{user_id_label}:</strong> {row.get('user_id', 'N/A')}")
                 popup_content_list.append(f"<strong>Device ID:</strong> {row.get('device_id', 'N/A')}")
@@ -76,7 +76,7 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                 folium.Marker(
                     location=coords,
                     popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color=icon_color, icon='info-sign'),
+                    icon=folium.Icon(color=icon_color, icon=icon_name, prefix='fa'),
                     tags=tags
                 ).add_to(m)
                 

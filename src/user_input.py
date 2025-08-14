@@ -1,4 +1,3 @@
-# src/user_input.py
 from datetime import datetime, timedelta
 from src.config import EVENT_GROUPS
 
