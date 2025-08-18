@@ -1,51 +1,94 @@
-from datetime import datetime, timedelta
-from src.config import EVENT_GROUPS
+import sys
+from datetime import datetime
+from src.config import EVENT_CONFIG, EVENT_GROUPS
 
 def get_user_input():
     """
-    Solicita al usuario el rango de fechas y los tipos de eventos a visualizar.
+    Solicita al usuario un rango de fechas con opción de especificar la hora.
+    Si no se especifica la hora, se usa el rango 00:00 - 23:59.
     """
+    def parse_datetime(input_str, is_start=True):
+        """Intenta analizar una cadena de fecha con y sin hora."""
+        try:
+            # Intenta con el formato completo: 'YYYYMMDD HH:MM'
+            dt = datetime.strptime(input_str.strip(), '%Y%m%d %H:%M')
+            return dt
+        except ValueError:
+            try:
+                # Si falla, intenta con el formato solo de fecha: 'YYYYMMDD'
+                dt = datetime.strptime(input_str.strip(), '%Y%m%d')
+                if is_start:
+                    return dt.replace(hour=0, minute=0, second=0)
+                else:
+                    return dt.replace(hour=23, minute=59, second=59)
+            except ValueError:
+                raise ValueError("Formato de fecha u hora incorrecto. Use 'YYYYMMDD' o 'YYYYMMDD HH:MM'.")
+
     while True:
         try:
-            start_date_str = input("Introduce la fecha de inicio (YYYY-MM-DD): ")
-            end_date_str = input("Introduce la fecha de fin (YYYY-MM-DD): ")
-
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(hours=23, minutes=59, seconds=59)
+            print("\n--- Ingrese el rango de fechas para la consulta ---")
+            print("Formato: YYYYMMDD HH:MM (la hora es opcional)")
+            start_dt_str = input("Ingrese fecha y hora de inicio: ")
+            end_dt_str = input("Ingrese fecha y hora de fin: ")
             
-            # Limitar el rango de fechas a una semana (168 horas) para evitar mapas demasiado grandes.
-            if end_date - start_date > timedelta(hours=168):
-                print("Error: El rango de fechas no puede ser superior a 1 semana.")
+            start_date = parse_datetime(start_dt_str, is_start=True)
+            end_date = parse_datetime(end_dt_str, is_start=False)
+
+            if start_date > end_date:
+                print("La fecha/hora de inicio no puede ser posterior a la fecha/hora de fin. Inténtelo de nuevo.")
                 continue
 
             break
-        except ValueError:
-            print("Formato de fecha incorrecto. Usa el formato YYYY-MM-DD.")
+        except ValueError as e:
+            print(f"Error: {e}")
     
-    available_event_types = sorted(list(EVENT_GROUPS.keys()))
+    print("\n--- Seleccione los tipos de eventos a filtrar ---")
+    
+    event_options = {}
+    
+    print("(0) Todos los eventos")
+    
+    for i, group_name in enumerate(EVENT_GROUPS.keys(), 1):
+        print(f"({i}) Grupo: {group_name}")
+        event_options[i] = EVENT_GROUPS[group_name]
+    
+    individual_start_index = len(EVENT_GROUPS) + 1
+    individual_event_codes = [code for code in EVENT_CONFIG.keys() if code not in [item for sublist in EVENT_GROUPS.values() for item in sublist]]
+    for i, event_code in enumerate(sorted(individual_event_codes), individual_start_index):
+        print(f"({i}) Evento: {EVENT_CONFIG[event_code]['label']}")
+        event_options[i] = [event_code]
 
     while True:
-        print("\nTipos de evento disponibles:")
-        for i, event_type in enumerate(available_event_types, 1):
-            print(f"{i}: {event_type}")
-        
-        user_choice = input("Selecciona los tipos de evento por número (ej: 1,3,5): ")
-        
-        selected_event_types = []
         try:
-            choices = [int(c.strip()) for c in user_choice.split(',')]
-            for choice in choices:
-                if 1 <= choice <= len(available_event_types):
-                    selected_event_types.append(available_event_types[choice - 1])
-            if selected_event_types:
+            selection_str = input("Seleccione una o varias opciones (ej: 1, 3, 5): ")
+            selections = [int(s.strip()) for s in selection_str.split(',')]
+            
+            selected_event_codes = []
+            
+            if 0 in selections:
+                print("\n⚠️  ADVERTENCIA: Ha seleccionado 'Todos los eventos'.")
+                print("Esto podría generar una query con un alto consumo de recursos y el mapa resultante podría no ser manejable en el navegador.")
+                confirm = input("¿Desea continuar de todos modos? (s/n): ").lower()
+                if confirm == 's':
+                    selected_event_codes = list(EVENT_CONFIG.keys())
+                    break
+                else:
+                    print("Operación cancelada. Por favor, vuelva a seleccionar.")
+                    continue
+            
+            for sel in selections:
+                if sel in event_options:
+                    selected_event_codes.extend(event_options[sel])
+                else:
+                    print(f"Opción inválida: {sel}. Inténtelo de nuevo.")
+                    selected_event_codes = []
+                    break
+            
+            if selected_event_codes:
+                selected_event_codes = sorted(list(set(selected_event_codes)))
                 break
-            else:
-                print("Selección inválida. Por favor, introduce números válidos.")
+
         except ValueError:
-            print("Entrada incorrecta. Por favor, introduce números separados por comas.")
+            print("Entrada inválida. Por favor, ingrese solo números separados por comas.")
 
-    db_event_codes = []
-    for event_group in selected_event_types:
-        db_event_codes.extend(EVENT_GROUPS[event_group])
-
-    return start_date, end_date, db_event_codes
+    return start_date, end_date, selected_event_codes

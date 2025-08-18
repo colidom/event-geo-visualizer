@@ -15,7 +15,6 @@ def connect_to_db():
             password=os.getenv("DB_PASS"),
             dbname=os.getenv("DB_NAME")
         )
-        print("Conexión a la base de datos establecida correctamente.")
         return conn
     except psycopg2.Error as err:
         print(f"Error al conectar a la base de datos: {err}")
@@ -29,9 +28,19 @@ def close_connection(conn):
 
 def get_sql_query_string(start_date, end_date, event_types):
     """
-    Genera y devuelve la cadena de la consulta SQL.
+    Genera y devuelve la cadena de la consulta SQL con un nombre de tabla dinámico.
+    
+    Args:
+        start_date (datetime): Fecha de inicio para determinar el nombre de la tabla.
+        end_date (datetime): Fecha de fin para la consulta.
+        event_types (list): Tipos de evento para el filtro IN.
+        
+    Returns:
+        str: La consulta SQL.
     """
-    placeholders = ', '.join([f"'{et}'" for et in event_types])
+    table_name = f"monitored_event_p{start_date.year}{start_date.month:02d}01"
+    
+    placeholders = ', '.join(['%s'] * len(event_types))
     
     query = f"""
         SELECT
@@ -42,9 +51,9 @@ def get_sql_query_string(start_date, end_date, event_types):
             COALESCE(defendant_id, victim_id) as user_id,
             COALESCE(defendant_phone_coordinates, victim_phone_coordinates) as phone_coordinates
         FROM
-            monitored_event
+            {table_name}
         WHERE
-            alarm_date >= '{start_date}' AND alarm_date <= '{end_date}'
+            alarm_date >= %s AND alarm_date <= %s
             AND event_iot_type_code IN ({placeholders});
     """
     return query
@@ -56,24 +65,9 @@ def get_monitored_event_data(conn, start_date, end_date, event_types):
     if conn is None or not event_types:
         return []
     
-    placeholders = ','.join(['%s'] * len(event_types))
-    
-    query = f"""
-        SELECT
-            alarm_date,
-            alert_uuid,
-            device_id,
-            event_iot_type_code as event_type,
-            COALESCE(defendant_id, victim_id) as user_id,
-            COALESCE(defendant_phone_coordinates, victim_phone_coordinates) as phone_coordinates
-        FROM
-            monitored_event
-        WHERE
-            alarm_date >= %s AND alarm_date <= %s
-            AND event_iot_type_code IN ({placeholders});
-    """
-    
     try:
+        query = get_sql_query_string(start_date, end_date, event_types)
+        
         with conn.cursor(cursor_factory=extras.DictCursor) as cursor:
             params = [start_date, end_date] + event_types
             cursor.execute(query, params)
