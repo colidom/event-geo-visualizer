@@ -5,7 +5,7 @@ from src.config import EVENT_CONFIG, EVENT_GROUPS
 def get_user_input():
     """
     Solicita al usuario un rango de fechas y tipos de eventos.
-    Valida que el rango de fechas no sea mayor a una semana.
+    Valida que el rango de fechas no sea mayor a un 1 día.
     """
     def parse_datetime(input_str, is_start=True):
         """Intenta analizar una cadena de fecha con y sin hora."""
