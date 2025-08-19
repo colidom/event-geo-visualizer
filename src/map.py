@@ -1,7 +1,7 @@
 import folium
 import pandas as pd
 import pytz
-from src.config import EVENT_CONFIG
+from src.config import EVENT_CONFIG, EVENT_GROUPS
 from folium.plugins import TagFilterButton
 
 def create_marker(row, m, all_coords, all_alarm_dates):
@@ -47,6 +47,8 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                     icon_color = 'lightgray'
                     event_label = event_type if event_type else 'Tipo de evento desconocido'
                 
+                icon_name = 'user'
+                user_id_label = "User ID"
                 if user_tag == 'Inculpado':
                     icon_name = 'male'
                     user_id_label = 'ID Inculpado'
@@ -54,17 +56,22 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                     icon_name = 'female'
                     user_id_label = 'ID Víctima'
 
-                tags = [hour_tag, user_tag]
+                event_group_tags = []
+                for group_name, events in EVENT_GROUPS.items():
+                    if event_type in events:
+                        event_group_tags.append(group_name)
+                
+                tags = [hour_tag, user_tag] + event_group_tags
 
                 popup_content_list = []
                 
                 popup_content_list.append(f"<strong>Tipo de Usuario:</strong> {user_tag}")
                 popup_content_list.append(f"<strong>Tipo de Evento:</strong> {event_label}")
                 popup_content_list.append(f"<strong>{user_id_label}:</strong> {row.get('user_id', 'N/A')}")
-                popup_content_list.append(f"<strong>Dispositivo:</strong> {row.get('device_id', 'N/A')}")
+                popup_content_list.append(f"<strong>Device ID:</strong> {row.get('device_id', 'N/A')}")
                 popup_content_list.append(f"<strong>Coordenada:</strong> {coords_parts[0]}, {coords_parts[1]}")
-                popup_content_list.append(f"<strong>Fecha alarma:</strong> {madrid_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
-                popup_content_list.append(f"<strong>UUID Alerta:</strong> {row.get('alert_uuid', 'N/A')}")
+                popup_content_list.append(f"<strong>Alarm Date:</strong> {madrid_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+                popup_content_list.append(f"<strong>Alert UUID:</strong> {row.get('alert_uuid', 'N/A')}")
 
                 popup_html = "<br>".join(popup_content_list)
                 
@@ -88,7 +95,7 @@ def add_legend(m):
     """
     legend_html = """
      <div id="legend-container" style="position: fixed; 
-                 bottom: 50px; right: 50px; width: 200px; height: auto; 
+                 bottom: 50px; right: 50px; width: 220px; height: auto; 
                  border:2px solid grey; z-index:9999; font-size:12px;
                  background-color:white; opacity:0.9;">
        <div style="padding: 10px;">
@@ -96,22 +103,37 @@ def add_legend(m):
          <div id="legend-items-list">
     """
 
-    # Diccionario para almacenar los ítems únicos de la leyenda
     unique_legend_items = {}
     
-    # Simplificamos la lógica para mostrar una entrada única por cada tipo de evento
     for event_code, config in EVENT_CONFIG.items():
-        # Usa el color y la etiqueta como clave única
-        key = (config['color'], config['label'])
+        # Agrupa por color y la parte genérica de la etiqueta
+        generic_label = config['label'].replace(' DLI', '').replace(' DLV', '')
+        key = (config['color'], generic_label)
+        
+        # Agregamos los códigos de evento para saber si tiene una versión DLI y DLV
         if key not in unique_legend_items:
-            unique_legend_items[key] = config
+            unique_legend_items[key] = {
+                'color': config['color'],
+                'label': generic_label,
+                'event_codes': {event_code}
+            }
+        else:
+            unique_legend_items[key]['event_codes'].add(event_code)
     
-    # Genera los ítems de la leyenda a partir de las entradas únicas
+    # Genera los ítems de la leyenda
     for config in unique_legend_items.values():
+        final_label = config['label']
+        
+        has_dli = any('_A' in code for code in config['event_codes'])
+        has_dlv = any('_V' in code for code in config['event_codes'])
+        
+        if has_dli and has_dlv:
+            final_label += ' DLI / DLV'
+        
         legend_html += f"""
           <div style="display: flex; align-items: center; margin-bottom: 5px;">
             <i style="background-color:{config['color']}; width:16px; height:16px; border-radius:50%; margin-right:8px; border:1px solid black;"></i>
-            <span>{config['label']}</span>
+            <span>{final_label}</span>
           </div>
         """
     
@@ -181,6 +203,12 @@ def generate_map(all_events_data, start_date, end_date):
     TagFilterButton(
         unique_hours,
         name='Filtro por Hora'
+    ).add_to(m)
+    
+    unique_event_groups = sorted(list(EVENT_GROUPS.keys()))
+    TagFilterButton(
+        unique_event_groups,
+        name='Tipo de Evento'
     ).add_to(m)
 
     add_legend(m)
