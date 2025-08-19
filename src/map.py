@@ -1,7 +1,7 @@
 import folium
 import pandas as pd
 import pytz
-from src.config import EVENT_CONFIG, EVENT_GROUPS
+from src.config import EVENT_CONFIG, EVENT_GROUPS, EVENT_GROUP_ORDER
 from folium.plugins import TagFilterButton
 
 def create_marker(row, m, all_coords, all_alarm_dates):
@@ -205,7 +205,7 @@ def generate_map(all_events_data, start_date, end_date):
         name='Filtro por Hora'
     ).add_to(m)
     
-    unique_event_groups = sorted(list(EVENT_GROUPS.keys()))
+    unique_event_groups = EVENT_GROUP_ORDER
     TagFilterButton(
         unique_event_groups,
         name='Tipo de Evento'
