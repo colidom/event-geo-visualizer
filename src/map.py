@@ -47,36 +47,33 @@ def create_marker(row, m, all_coords, all_alarm_dates):
                     icon_color = 'lightgray'
                     event_label = event_type if event_type else 'Tipo de evento desconocido'
                 
-                icon_name = 'user'
                 if user_tag == 'Inculpado':
                     icon_name = 'male'
+                    user_id_label = 'ID Inculpado'
                 elif user_tag == 'Víctima':
                     icon_name = 'female'
+                    user_id_label = 'ID Víctima'
 
                 tags = [hour_tag, user_tag]
 
                 popup_content_list = []
                 
-                user_id_label = "User ID"
-                if user_tag == 'Inculpado':
-                    user_id_label = 'ID Inculpado'
-                elif user_tag == 'Víctima':
-                    user_id_label = 'ID Víctima'
-                
                 popup_content_list.append(f"<strong>Tipo de Usuario:</strong> {user_tag}")
                 popup_content_list.append(f"<strong>Tipo de Evento:</strong> {event_label}")
                 popup_content_list.append(f"<strong>{user_id_label}:</strong> {row.get('user_id', 'N/A')}")
-                popup_content_list.append(f"<strong>Device ID:</strong> {row.get('device_id', 'N/A')}")
+                popup_content_list.append(f"<strong>Dispositivo:</strong> {row.get('device_id', 'N/A')}")
                 popup_content_list.append(f"<strong>Coordenada:</strong> {coords_parts[0]}, {coords_parts[1]}")
-                popup_content_list.append(f"<strong>Alarm Date:</strong> {madrid_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
-                popup_content_list.append(f"<strong>Alert UUID:</strong> {row.get('alert_uuid', 'N/A')}")
+                popup_content_list.append(f"<strong>Fecha alarma:</strong> {madrid_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
+                popup_content_list.append(f"<strong>UUID Alerta:</strong> {row.get('alert_uuid', 'N/A')}")
 
                 popup_html = "<br>".join(popup_content_list)
+                
+                marker_icon = folium.Icon(color=icon_color, icon=icon_name, prefix='fa')
 
                 folium.Marker(
                     location=coords,
                     popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color=icon_color, icon=icon_name, prefix='fa'),
+                    icon=marker_icon,
                     tags=tags
                 ).add_to(m)
                 
@@ -87,7 +84,7 @@ def create_marker(row, m, all_coords, all_alarm_dates):
 
 def add_legend(m):
     """
-    Crea y añade una leyenda estática al mapa de Folium con un botón para mostrar/ocultar.
+    Crea y añade una leyenda estática y simplificada al mapa de Folium.
     """
     legend_html = """
      <div id="legend-container" style="position: fixed; 
@@ -99,28 +96,18 @@ def add_legend(m):
          <div id="legend-items-list">
     """
 
-    grouped_legend_items = {'Víctima': [], 'Inculpado': []}
-    unique_items_seen = set()
-
+    # Diccionario para almacenar los ítems únicos de la leyenda
+    unique_legend_items = {}
+    
+    # Simplificamos la lógica para mostrar una entrada única por cada tipo de evento
     for event_code, config in EVENT_CONFIG.items():
-        key = (config['color'], config['label'], config['persona'])
-        if key not in unique_items_seen:
-            grouped_legend_items[config['persona']].append(config)
-            unique_items_seen.add(key)
+        # Usa el color y la etiqueta como clave única
+        key = (config['color'], config['label'])
+        if key not in unique_legend_items:
+            unique_legend_items[key] = config
     
-    legend_html += "<h5 style='margin-top: 10px; margin-bottom: 5px;'>Víctima</h5>"
-    for config in grouped_legend_items['Víctima']:
-        legend_html += f"""
-          <div style="display: flex; align-items: center; margin-bottom: 5px;">
-            <i style="background-color:{config['color']}; width:16px; height:16px; border-radius:50%; margin-right:8px; border:1px solid black;"></i>
-            <span>{config['label']}</span>
-          </div>
-        """
-    
-    legend_html += "<hr style='border:1px solid #ccc; margin: 10px 0;'>"
-
-    legend_html += "<h5 style='margin-top: 10px; margin-bottom: 5px;'>Inculpado</h5>"
-    for config in grouped_legend_items['Inculpado']:
+    # Genera los ítems de la leyenda a partir de las entradas únicas
+    for config in unique_legend_items.values():
         legend_html += f"""
           <div style="display: flex; align-items: center; margin-bottom: 5px;">
             <i style="background-color:{config['color']}; width:16px; height:16px; border-radius:50%; margin-right:8px; border:1px solid black;"></i>
