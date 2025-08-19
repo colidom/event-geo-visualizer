@@ -102,38 +102,31 @@ def add_legend(m):
          <h4 style="margin-top:0;">Leyenda de Eventos</h4>
          <div id="legend-items-list">
     """
-
+    
     unique_legend_items = {}
     
-    for event_code, config in EVENT_CONFIG.items():
-        # Agrupa por color y la parte genérica de la etiqueta
-        generic_label = config['label'].replace(' DLI', '').replace(' DLV', '')
-        key = (config['color'], generic_label)
-        
-        # Agregamos los códigos de evento para saber si tiene una versión DLI y DLV
-        if key not in unique_legend_items:
-            unique_legend_items[key] = {
-                'color': config['color'],
-                'label': generic_label,
-                'event_codes': {event_code}
+    # Recorremos los grupos definidos en EVENT_GROUPS
+    for group_name, event_codes in EVENT_GROUPS.items():
+        if event_codes:
+            # Obtenemos el color del primer evento del grupo
+            color = EVENT_CONFIG[event_codes[0]]['color']
+            
+            # Simplificamos los códigos de evento del grupo
+            simplified_codes = sorted(list(set(code.split('_')[0] for code in event_codes)))
+            codes_str = ", ".join(simplified_codes)
+
+            unique_legend_items[group_name] = {
+                'color': color,
+                'label': group_name,
+                'codes': codes_str
             }
-        else:
-            unique_legend_items[key]['event_codes'].add(event_code)
-    
+
     # Genera los ítems de la leyenda
     for config in unique_legend_items.values():
-        final_label = config['label']
-        
-        has_dli = any('_A' in code for code in config['event_codes'])
-        has_dlv = any('_V' in code for code in config['event_codes'])
-        
-        if has_dli and has_dlv:
-            final_label += ' DLI / DLV'
-        
         legend_html += f"""
           <div style="display: flex; align-items: center; margin-bottom: 5px;">
             <i style="background-color:{config['color']}; width:16px; height:16px; border-radius:50%; margin-right:8px; border:1px solid black;"></i>
-            <span>{final_label}</span>
+            <span>{config['label']} ({config['codes']})</span>
           </div>
         """
     
