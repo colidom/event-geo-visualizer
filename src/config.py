@@ -20,8 +20,8 @@ EVENT_CONFIG = {
     'BATCF_A': {'color': 'lightgray', 'label': 'Desenchufado cargador DLI (BATCF_A)', 'persona': 'Inculpado'},
     'BATCN_V': {'color': 'orange', 'label': 'Enchufado cargador DLV (BATCN_V)', 'persona': 'Víctima'},
     'BATCF_V': {'color': 'lightgray', 'label': 'Desenchufado cargador DLV (BATCF_V)', 'persona': 'Víctima'},
-    'BCS_A': {'color': 'lightred', 'label': 'Batería Crítica DLI (BCS_A)', 'persona': 'Inculpado'},
-    'BCS_V': {'color': 'lightred', 'label': 'Batería Crítica DLV (BCS_V)', 'persona': 'Víctima'},
+    'BCS_A': {'color': 'orange', 'label': 'Batería Crítica DLI (BCS_A)', 'persona': 'Inculpado'},
+    'BCS_V': {'color': 'orange', 'label': 'Batería Crítica DLV (BCS_V)', 'persona': 'Víctima'},
     'CBCS_A': {'color': 'green', 'label': 'Fin Batería Crítica DLI (CBCS_A)', 'persona': 'Inculpado'},
     'CBCS_V': {'color': 'green', 'label': 'Fin Batería Crítica DLV (CBCS_V)', 'persona': 'Víctima'}
 }
@@ -56,6 +56,6 @@ EVENT_GROUP_ORDER = [
     'Salida de Zona',
     'Cargador Conectado',
     'Cargador Desconectado',
-    'Bateria Crítica',
-    'Fin Bateria Critica'
+    'Batería Crítica',
+    'Fin Batería Crítica'
 ]
