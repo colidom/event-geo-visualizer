@@ -27,7 +27,7 @@ try:
             end_date, 
             selected_event_types
         )
-        ss(sql_query)
+        # ss(sql_query)
 
         all_events_data = src.database.get_monitored_event_data(
             db_conn, 
