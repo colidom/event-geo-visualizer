@@ -95,7 +95,7 @@ def add_legend(m):
     """
     legend_html = """
      <div id="legend-container" style="position: fixed; 
-                 bottom: 50px; right: 50px; width: 220px; height: auto; 
+                 bottom: 50px; right: 50px; width: 250px; height: auto; 
                  border:2px solid grey; z-index:9999; font-size:12px;
                  background-color:white; opacity:0.9;">
        <div style="padding: 10px;">

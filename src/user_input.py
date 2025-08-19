@@ -49,7 +49,11 @@ def get_user_input():
     print("(0) Todos los eventos")
     
     for i, group_name in enumerate(EVENT_GROUPS.keys(), 1):
-        print(f"({i}) Grupo: {group_name}")
+        event_codes = EVENT_GROUPS.get(group_name, [])
+        simplified_codes = sorted(list(set(code.split('_')[0] for code in event_codes)))
+        codes_str = ", ".join(simplified_codes)
+        
+        print(f"({i}) Grupo: {group_name} ({codes_str})")
         event_options[i] = EVENT_GROUPS[group_name]
     
     individual_start_index = len(EVENT_GROUPS) + 1
